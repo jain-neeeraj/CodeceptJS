@@ -2,19 +2,23 @@
 /// <reference path="./types.d.ts" />
 /// <reference types="webdriverio" />
 /// <reference path="./Mocha.d.ts" />
+/// <reference types="joi" />
+/// <reference types="playwright" />
 
 declare namespace CodeceptJS {
   type WithTranslation<T> = T &
     import("./utils").Translate<T, Translation.Actions>;
 
   type Cookie = {
-    name: string
-    value: string
-  }
+    name: string;
+    value: string;
+    domain?: string,
+    path?: string,
+  };
 
   interface PageScrollPosition {
-    x: number,
-    y: number
+    x: number;
+    y: number;
   }
 
   // Could get extended by user generated typings
@@ -22,7 +26,9 @@ declare namespace CodeceptJS {
   interface I {}
   interface IHook {}
   interface IScenario {}
-  interface IFeature {}
+  interface IFeature {
+    (title: string): FeatureConfig;
+  }
   interface CallbackOrder extends Array<any> {}
   interface SupportObject {
     I: CodeceptJS.I;
@@ -49,22 +55,48 @@ declare namespace CodeceptJS {
     | { frame: string }
     | { android: string }
     | { ios: string }
-    | { android: string, ios: string }
-    | { react: string };
+    | { android: string; ios: string }
+    | { react: string }
+    | { shadow: string }
+    | { custom: string };
 
-  type LocatorOrString = string | ILocator | Locator;
+  interface CustomLocators {}
+  type LocatorOrString =
+    | string
+    | ILocator
+    | Locator
+    | CustomLocators[keyof CustomLocators];
 
-  interface HookCallback { (args: SupportObject): void; }
-  interface Scenario extends IScenario { only: IScenario, skip: IScenario, todo: IScenario}
-  interface Feature extends IFeature { skip: IFeature }
-  interface IData { Scenario: IScenario, only: { Scenario: IScenario } }
+  type StringOrSecret = string | CodeceptJS.Secret;
+
+  interface HookCallback {
+    (args: SupportObject): void | Promise<void>;
+  }
+  interface Scenario extends IScenario {
+    only: IScenario;
+    skip: IScenario;
+    todo: IScenario;
+  }
+  interface Feature extends IFeature {
+    skip: IFeature;
+  }
+  interface IData {
+    Scenario: IScenario;
+    only: { Scenario: IScenario };
+  }
 
   interface IScenario {
     // Scenario.todo can be called only with a title.
     (title: string, callback?: HookCallback): ScenarioConfig;
-    (title: string, opts: { [key: string]: any }, callback: HookCallback): ScenarioConfig;
+    (
+      title: string,
+      opts: { [key: string]: any },
+      callback: HookCallback
+    ): ScenarioConfig;
   }
-  interface IHook { (callback: HookCallback): void; }
+  interface IHook {
+    (callback: HookCallback): void;
+  }
 
   interface Globals {
     codeceptjs: typeof codeceptjs;
@@ -83,6 +115,7 @@ declare const pause: typeof CodeceptJS.pause;
 declare const within: typeof CodeceptJS.within;
 declare const session: typeof CodeceptJS.session;
 declare const DataTable: typeof CodeceptJS.DataTable;
+declare const DataTableArgument: typeof CodeceptJS.DataTableArgument;
 declare const codeceptjs: typeof CodeceptJS.index;
 declare const locate: typeof CodeceptJS.Locator.build;
 declare function inject(): CodeceptJS.SupportObject;
@@ -132,6 +165,7 @@ declare namespace NodeJS {
     within: typeof within;
     session: typeof session;
     DataTable: typeof DataTable;
+    DataTableArgument: typeof DataTableArgument;
     locate: typeof locate;
     inject: typeof inject;
     secret: typeof secret;
@@ -159,16 +193,21 @@ declare namespace Mocha {
   }
 
   interface Suite extends SuiteRunnable {
-    tags: any[]
-    comment: string
-    feature: any
+    tags: any[];
+    comment: string;
+    feature: any;
   }
 
-  interface Test  extends Runnable {
+  interface Test extends Runnable {
+    artifacts: [],
     tags: any[];
   }
 }
 
 declare module "codeceptjs" {
   export = codeceptjs;
+}
+
+declare module "@codeceptjs/helper" {
+  export = CodeceptJS.Helper;
 }

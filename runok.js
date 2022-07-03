@@ -160,6 +160,7 @@ Our community prepared some valuable recipes for setting up CI systems with Code
           cfg.replace(/LocatorOrString\?/g, '(string | object)?');
           cfg.replace(/CodeceptJS.LocatorOrString/g, 'string | object');
           cfg.replace(/LocatorOrString/g, 'string | object');
+          cfg.replace(/CodeceptJS.StringOrSecret/g, 'string | object');
         }
       });
     }
@@ -169,7 +170,7 @@ Our community prepared some valuable recipes for setting up CI systems with Code
     // generate documentation for helpers
     const files = fs.readdirSync('lib/helper').filter(f => path.extname(f) === '.js');
 
-    const ignoreList = ['Polly', 'MockRequest']; // WebDriverIO won't be documented and should be removed
+    const ignoreList = ['Polly', 'MockRequest', 'Protractor']; // WebDriverIO won't be documented and should be removed
 
     const partials = fs.readdirSync('docs/webapi').filter(f => path.extname(f) === '.mustache');
     const placeholders = partials.map(file => `{{> ${path.basename(file, '.mustache')} }}`);
@@ -196,6 +197,7 @@ Our community prepared some valuable recipes for setting up CI systems with Code
         cfg.replace(/LocatorOrString\?/g, '(string | object)?');
         cfg.replace(/CodeceptJS.LocatorOrString/g, 'string | object');
         cfg.replace(/LocatorOrString/g, 'string | object');
+        cfg.replace(/CodeceptJS.StringOrSecret/g, 'string | object');
       });
 
       await npx(`documentation build docs/build/${file} -o docs/helpers/${name}.md -f md --shallow --markdown-toc=false --sort-order=alpha`);
@@ -349,7 +351,7 @@ title: ${name}
       });
       stopOnFail(true);
 
-      await exec('./runio.js publish');
+      await exec('./runok.js publish');
     });
   },
 
@@ -388,6 +390,26 @@ title: ${name}
     console.log('-- RELEASED --');
   },
 
+  async versioning() {
+    const semver = require('semver');
+
+    if (fs.existsSync('./package.json')) {
+      const packageFile = require('./package.json');
+      const currentVersion = packageFile.version;
+      let type = process.argv[3];
+      if (!['major', 'minor', 'patch'].includes(type)) {
+        type = 'patch';
+      }
+
+      const newVersion = semver.inc(packageFile.version, type);
+      packageFile.version = newVersion;
+      fs.writeFileSync('./package.json', JSON.stringify(packageFile, null, 2));
+      console.log('Version updated', currentVersion, '=>', newVersion);
+
+      console.log('Creating and switching to release branch...');
+      await exec(`git checkout -b release-${newVersion}`);
+    }
+  },
 };
 
 async function processChangelog() {

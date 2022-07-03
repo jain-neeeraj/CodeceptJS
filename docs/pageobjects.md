@@ -32,7 +32,9 @@ const { I, myPage, mySteps } = inject();
 // inject objects for a test by name
 Scenario('sample test', ({ I, myPage, mySteps }) => {
   // ...
-  }
+});
+```
+
 ## Actor
 
 During initialization you were asked to create a custom steps file. If you accepted this option, you are now able to use the `custom_steps.js` file to extend `I`. See how the `login` method can be added to `I`:
@@ -188,6 +190,8 @@ class AttachFile {
 module.exports = new AttachFile();
 module.exports.AttachFile = AttachFile;
 ```
+
+> ⚠ While building complex page objects it is important to keep all `async` functions to be called with `await`. While CodeceptJS allows to run commands synchronously if async function has `I.grab*` or any custom function that returns a promise it must be called with `await`. If you see `UnhandledPromiseRejectionWarning` it might be caused by async page object function that was called without `await`.
 
 ## Page Fragments
 

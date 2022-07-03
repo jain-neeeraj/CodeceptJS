@@ -26,7 +26,7 @@ This command is similar to `run`, however, steps output can't be shown in worker
 
 Each worker spins an instance of CodeceptJS, executes a group of tests, and sends back report to the main process.
 
-By default the tests are assigned one by one to the avaible workers this may lead to multiple execution of `BeforeSuite()`. Use the option `--suites` to assigne the suites one by one to the workers.
+By default the tests are assigned one by one to the available workers this may lead to multiple execution of `BeforeSuite()`. Use the option `--suites` to assigne the suites one by one to the workers.
 
 ```sh
 npx codeceptjs run-workers --suites 2
@@ -74,9 +74,11 @@ const testGroups = workers.createGroupsOfSuites(2);
 const browsers = ['firefox', 'chrome'];
 
 const configs = browsers.map(browser => {
-  return helpers: {
-    WebDriver: { browser }
-  }
+  return {
+    helpers: {
+      WebDriver: { browser }
+    }
+  };
 });
 
 for (const config of configs) {
@@ -176,24 +178,41 @@ customWorkers.on(event.all.result, () => {
 });
 ```
 
+### Emitting messages to the parent worker
+
+Child workers can send non test events to the main process. This is useful if you want to pass along information not related to the tests event cycles itself such as `event.test.success`.
+
+```js
+// inside main process
+// listen for any non test related events
+workers.on('message', (data) => {
+  console.log(data)
+});
+
+workers.on(event.all.result, (status, completedTests, workerStats) => {
+  // logic
+});
+```
+
 ## Sharing Data Between Workers
 
-NodeJS Workers can communicate between each other via messaging system. It may happen that you want to pass some data from one of workers to other. For instance, you may want to share user credentials accross all tests. Data will be appended to a container.
+NodeJS Workers can communicate between each other via messaging system. It may happen that you want to pass some data from one of the workers to other. For instance, you may want to share user credentials accross all tests. Data will be appended to a container.
 
-However, you can't access uninitialized data from a container, so to start, you need to initialized data first. Inside `bootstrap` function of the config we execute the `share` function with `local: true` to initialize value locally:
+However, you can't access uninitialized data from a container, so to start, you need to initialize data first. Inside `bootstrap` function of the config we execute the `share` to initialize value:
 
 
 ```js
 // inside codecept.conf.js
 exports.config = {
   bootstrap() {
-    // append empty userData to container for current worker
-    share({ userData: false }, { local: true });
+    // append empty userData to container
+    share({ userData: false });
   }
 }
 ```
+
 Now each worker has `userData` inside a container. However, it is empty.
-When you obtain real data in one of tests you can this data accross tests. Use `inject` function to access data inside a container:
+When you obtain real data in one of the tests you can now `share` this data accross tests. Use `inject` function to access data inside a container:
 
 ```js
 // get current value of userData
@@ -202,6 +221,12 @@ let { userData } = inject();
 if (!userData) {
   userData = { name: 'user', password: '123456' };
   // now new userData will be shared accross all workers
-  share(userData);
+  share({userData : userData});
 }
+```
+
+If you want to share data only within same worker, and not across all workers, you need to add option `local: true` every time you run `share` 
+
+```js
+share({ userData: false }, {local: true });
 ```

@@ -1,6 +1,9 @@
 ## Automating React Native apps
 
 ### Problem
+
+> ⚠️ **NOTE**: This problem is not actual starting from `react-native@0.65.x` [CHANGELOG](https://github.com/react-native-community/releases/blob/master/CHANGELOG.md#android-specific-9), [#381fb3](https://github.com/facebook/react-native/commit/381fb395ad9d2d48717a5d082aaedbecdd804554)
+
 Let's say we have a React Native app with component defined like this
 ```html
 <Button testID='someButton'>My button</Button>
@@ -46,14 +49,14 @@ You could do it just by changing `automationName` in the `helpers` section of th
 ```
 Then you could locate components using XPath expression:
 ```js
-I.tap({android: /'//*[@view-tag="someButton"]', ios: '~someButton'})
+I.tap({android: '//*[@view-tag="someButton"]', ios: '~someButton'})
 ```
 This way test would work for both platforms without any changes in code.
 To simplify things further you could write a helper function:
 ```js
 function tid(id) {
   return {
-    android: /`//*[@view-tag="${id}"]`,
+    android: `//*[@view-tag="${id}"]`,
     ios: '~' + id
   }
 }

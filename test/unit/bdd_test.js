@@ -1,8 +1,10 @@
 const { expect } = require('chai');
 const { Parser } = require('gherkin');
+const Config = require('../../lib/config');
 const {
   Given,
   When,
+  And,
   Then,
   matchStep,
   clearSteps,
@@ -26,11 +28,23 @@ const text = `
     When I go to checkout process
 `;
 
+const checkTestForErrors = (test) => {
+  return new Promise((resolve, reject) => {
+    test.fn((err) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve();
+    });
+  });
+};
+
 describe('BDD', () => {
   beforeEach(() => {
     clearSteps();
     recorder.start();
     container.create({});
+    Config.reset();
   });
 
   afterEach(() => {
@@ -53,10 +67,30 @@ describe('BDD', () => {
   it('should load step definitions', () => {
     Given('I am a bird', () => 1);
     When('I fly over ocean', () => 2);
-    Then(/I see (.*?)/, () => 3);
+    And(/^I fly over land$/i, () => 3);
+    Then(/I see (.*?)/, () => 4);
     expect(1).is.equal(matchStep('I am a bird')());
-    expect(3).is.equal(matchStep('I see ocean')());
-    expect(3).is.equal(matchStep('I see world')());
+    expect(3).is.equal(matchStep('I Fly oVer Land')());
+    expect(4).is.equal(matchStep('I see ocean')());
+    expect(4).is.equal(matchStep('I see world')());
+  });
+
+  it('should fail on duplicate step definitions with option', () => {
+    Config.append({
+      gherkin: {
+        avoidDuplicateSteps: true,
+      },
+    });
+
+    let error = null;
+    try {
+      Given('I am a bird', () => 1);
+      Then('I am a bird', () => 1);
+    } catch (err) {
+      error = err;
+    } finally {
+      expect(!!error).is.true;
+    }
   });
 
   it('should contain tags', async () => {
@@ -82,18 +116,49 @@ describe('BDD', () => {
     });
   });
 
-  it('should allow failed steps', (done) => {
+  it('should allow failed steps', async () => {
     let sum = 0;
     Given(/I have product with (\d+) price/, param => sum += parseInt(param, 10));
-    When('I go to checkout process', () => expect(false).is.false);
+    When('I go to checkout process', () => expect(false).is.true);
     const suite = run(text);
     expect('checkout process').is.equal(suite.title);
-    let errored = false;
-    suite.tests[0].fn((err) => {
-      errored = !!err;
-      expect(errored).is.exist;
-      done();
-    });
+    try {
+      await checkTestForErrors(suite.tests[0]);
+      return Promise.reject((new Error('Test should have thrown with failed step, but did not')));
+    } catch (err) {
+      const errored = !!err;
+      expect(errored).is.true;
+    }
+  });
+
+  it('handles errors in steps', async () => {
+    let sum = 0;
+    Given(/I have product with (\d+) price/, param => sum += parseInt(param, 10));
+    When('I go to checkout process', () => { throw new Error('errored step'); });
+    const suite = run(text);
+    expect('checkout process').is.equal(suite.title);
+    try {
+      await checkTestForErrors(suite.tests[0]);
+      return Promise.reject((new Error('Test should have thrown with error, but did not')));
+    } catch (err) {
+      const errored = !!err;
+      expect(errored).is.true;
+    }
+  });
+
+  it('handles async errors in steps', async () => {
+    let sum = 0;
+    Given(/I have product with (\d+) price/, param => sum += parseInt(param, 10));
+    When('I go to checkout process', () => Promise.reject(new Error('step failed')));
+    const suite = run(text);
+    expect('checkout process').is.equal(suite.title);
+    try {
+      await checkTestForErrors(suite.tests[0]);
+      return Promise.reject((new Error('Test should have thrown with error, but did not')));
+    } catch (err) {
+      const errored = !!err;
+      expect(errored).is.true;
+    }
   });
 
   it('should work with async functions', (done) => {

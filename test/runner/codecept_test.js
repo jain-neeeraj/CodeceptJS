@@ -52,6 +52,14 @@ describe('CodeceptJS Runner', () => {
       err.code.should.eql(1);
       done();
     });
+
+    it('should except a directory glob pattern', (done) => {
+      process.chdir(codecept_dir);
+      exec(`${codecept_run} "test-dir/*"`, (err, stdout) => {
+        stdout.should.include('2 passed'); // number of tests present in directory
+        done();
+      });
+    });
   });
 
   describe('grep', () => {
@@ -248,6 +256,16 @@ describe('CodeceptJS Runner', () => {
     exec(`${codecept_run_config('config.js')} --profile failed`, (err, stdout) => {
       stdout.should.include('FAILURES');
       stdout.should.not.include('I am bootstrap');
+      assert(err.code);
+      done();
+    });
+  });
+
+  it('should exit code 1 when error in config', (done) => {
+    exec(`${codecept_run_config('configs/codecept-invalid.config.js')} --profile failed`, (err, stdout, stderr) => {
+      stdout.should.not.include('UnhandledPromiseRejectionWarning');
+      stderr.should.not.include('UnhandledPromiseRejectionWarning');
+      stdout.should.include('badFn is not defined');
       assert(err.code);
       done();
     });
