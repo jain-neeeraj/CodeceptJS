@@ -568,7 +568,9 @@ describe('Playwright', function () {
       .then(html => assert.equal(html.trim(), '<a href="/login" target="_blank">New tab</a>')));
   });
 
-  describe('#grabBrowserLogs', () => {
+  describe('#grabBrowserLogs', function () {
+    this.retries(3);
+
     it('should grab browser logs', () => I.amOnPage('/')
       .then(() => I.executeScript(() => {
         console.log('Test log entry');
