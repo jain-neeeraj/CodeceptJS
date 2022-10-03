@@ -52,8 +52,8 @@ describe('subtitles', () => {
 
     fsMock.expects('writeFile')
       .once()
-      .withExactArgs('../../lib/output/failedTest1.srt', sinon.match((value) => {
-        return value.match(/^1\n[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}\s-->\s[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}\nI\.click\(Continue\)\n\n$/gm);
+      .withExactArgs('../../lib/output/failedTest1.vtt', sinon.match((value) => {
+        return value.match(/^WEBVTT\n\n1\n[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\s-->\s[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\nI\.click\(Continue\)\n\n$/gm);
       }));
 
     event.dispatcher.emit(event.test.before, test);
@@ -75,8 +75,9 @@ describe('subtitles', () => {
 
     fsMock.expects('writeFile')
       .once()
-      .withExactArgs('../../lib/output/failedTest1.srt', sinon.match((value) => {
-        return value.match(/^1\n[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}\s-->\s[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}\nI\.click\(Continue\)\n\n2\n[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}\s-->\s[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}\nI\.see\(Github\)\n\n$/gm);
+      .withExactArgs('../../lib/output/failedTest1.vtt', sinon.match((value) => {
+        console.log(`value is -----${value}`);
+        return value.match(/^WEBVTT\n\n1\n[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\s-->\s[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\nI\.click\(Continue\)\n\n2\n[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\s-->\s[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\nI\.see\(Github\)\n\n$/gm);
       }));
 
     event.dispatcher.emit(event.test.before, test);
@@ -103,8 +104,8 @@ describe('subtitles', () => {
 
     fsMock.expects('writeFile')
       .once()
-      .withExactArgs('../../lib/output/failedTest1.srt', sinon.match((value) => {
-        return value.match(/^1\n[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}\s-->\s[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}\nI\.click\(Continue\)\n\n2\n[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}\s-->\s[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}\nI\.see\(Github\)\n\n$/gm);
+      .withExactArgs('../../lib/output/failedTest1.vtt', sinon.match((value) => {
+        return value.match(/^WEBVTT\n\n1\n[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\s-->\s[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\nI\.click\(Continue\)\n\n2\n[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\s-->\s[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\nI\.see\(Github\)\n\n$/gm);
       }));
 
     event.dispatcher.emit(event.test.before, test1);
@@ -126,8 +127,8 @@ describe('subtitles', () => {
     const fsMock1 = sinon.mock(fsPromises);
     fsMock1.expects('writeFile')
       .once()
-      .withExactArgs('../../lib/output/failedTest2.srt', sinon.match((value) => {
-        return value.match(/^1\n[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}\s-->\s[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}\nI\.click\(Login\)\n\n$/gm);
+      .withExactArgs('../../lib/output/failedTest2.vtt', sinon.match((value) => {
+        return value.match(/^WEBVTT\n\n1\n[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\s-->\s[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\nI\.click\(Login\)\n\n$/gm);
       }));
     const test2 = {
       artifacts: {
